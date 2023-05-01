@@ -2,6 +2,8 @@ package ai.neurons;
 import logic.ITick;
 
 public class Neuron implements IFireable, ITick {
+	public static final Terminal[] null_terminals = new Terminal[]{};
+
 	int num = 0;
 
 	Terminal[] terminals;
@@ -48,7 +50,6 @@ public class Neuron implements IFireable, ITick {
 	@Override
 	public void fire(short signal) {
 		num++;
-		System.out.println("NUM " + num);
 		
 		for(Terminal t: terminals) {
 			t.send(signal);

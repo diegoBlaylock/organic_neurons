@@ -5,7 +5,7 @@ import java.awt.Graphics2D;
 
 import javax.swing.JComponent;
 
-import ai.Creature;
+import ent.Creature;
 import world.Entity;
 import world.World;
 

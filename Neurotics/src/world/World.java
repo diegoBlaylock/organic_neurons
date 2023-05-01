@@ -39,11 +39,11 @@ public class World {
 		short total = 0;
 		
 		for(IScented scented : scentSources[type.ordinal()]) {
-			short intensity = (short) (scented.smell() + 128);
+			short intensity = (short) (scented.smell());
 			double x = (scented.getPosition().getX() - loc.getX());
 			double y = (scented.getPosition().getY() - loc.getY());
 			
-			double distance_sq = 1/15 * (x*x + y*y);
+			double distance_sq = 1f/128 * (x*x + y*y);
 			
 			total+= intensity / (distance_sq + 1);
 		}

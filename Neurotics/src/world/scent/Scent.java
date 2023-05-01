@@ -5,8 +5,8 @@ public enum Scent {
 	CREATURE(1),
 	DEATH(2);
 	
-	final byte analog;
+	final short analog;
 	Scent(int i){
-		analog = (byte) i;
+		analog = (short) i;
 	}
 }

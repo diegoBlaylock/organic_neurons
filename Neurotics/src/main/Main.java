@@ -2,17 +2,21 @@ package main;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.SwingUtilities;
 
-import ai.Creature;
 import ai.group.EvolutionController;
+import ent.Creature;
+import ent.Fruit;
 import gui.ViewPort;
 import gui.Window;
 import logic.Timer;
-import world.Fruit;
+import logic.physics.Vecf;
 import world.World;
 import world.events.ISpawnListener;
+import world.scent.Scent;
 
 public class Main {
 	
@@ -22,7 +26,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		setupWorld();
-		populate(16);
+		populate(4);
 		setupTimer();
 		
 		setupGUI();
@@ -76,6 +80,21 @@ public class Main {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				
+			}
+			
+		});
+		
+		window.addMouseMotionListener(new MouseMotionListener() {
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				window.setTitle(String.valueOf(world.scentIntensity(Scent.FRUITY, new Vecf(e.getX(), e.getY()))));
 			}
 			
 		});

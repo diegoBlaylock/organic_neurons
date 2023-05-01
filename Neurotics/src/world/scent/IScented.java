@@ -6,7 +6,7 @@ public interface IScented {
 	
 	public Vecf getPosition();
 	
-	public byte smell();
+	public short smell();
 	
 	public Scent getScent();
 }

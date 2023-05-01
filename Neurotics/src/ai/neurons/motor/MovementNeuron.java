@@ -7,7 +7,6 @@ import logic.physics.Physical;
 import logic.physics.Vecf;
 
 public class MovementNeuron extends Neuron {
-	static final Terminal[] null_terminals = new Terminal[]{};
 	static final float MAX = 100;
 	
 	
@@ -16,7 +15,7 @@ public class MovementNeuron extends Neuron {
 	final Vecf force;
 	
 	public MovementNeuron(Physical control, Vecf force, short potential, short pressure) {
-		super(null_terminals, potential, pressure);
+		super(Neuron.null_terminals, potential, pressure);
 		this.control = control.getHandle();
 		this.force = force;
 	}

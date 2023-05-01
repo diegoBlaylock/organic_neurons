@@ -1,7 +1,8 @@
 package ai.neurons.sensory;
 
-import ai.Creature;
 import ai.neurons.Neuron;
+import ai.neurons.Terminal;
+import ent.Creature;
 import logic.physics.Vecf;
 import world.scent.Scent;
 
@@ -10,7 +11,7 @@ public class ScentNeuron extends ASensoryNeuron {
 	private Vecf offset;
 
 
-	public ScentNeuron(Creature creature, Neuron neuron, Scent fruity, Vecf vec) {
+	public ScentNeuron(Creature creature, Terminal[] neuron, Scent fruity, Vecf vec) {
 		super(creature, neuron);
 		this.scent= fruity;
 		this.offset = vec;

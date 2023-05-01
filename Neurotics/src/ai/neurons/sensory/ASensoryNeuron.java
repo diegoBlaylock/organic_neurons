@@ -1,25 +1,26 @@
 package ai.neurons.sensory;
 
-import ai.Creature;
 import ai.neurons.IThink;
 import ai.neurons.Neuron;
+import ai.neurons.Terminal;
+import ent.Creature;
 import logic.ITick;
 
 public abstract class ASensoryNeuron implements ITick, IThink{
-	Neuron wrapper;
+	Terminal[] connections;
 	Creature creature;
 	
-	public ASensoryNeuron(Creature creature, Neuron connection) {
+	public ASensoryNeuron(Creature creature, Terminal[] connection) {
 		this.creature = creature;
-		wrapper = connection;
+		connections = connection;
 	}
 	
 	public void tick() {
-		wrapper.tick();
+		for(Terminal wrap: connections) wrap.tick();
 	}
 	
 	public void think() {
-		wrapper.tickle(sense(creature));
+		for(Terminal wrap: connections) wrap.send(sense(creature));
 
 	}
 	

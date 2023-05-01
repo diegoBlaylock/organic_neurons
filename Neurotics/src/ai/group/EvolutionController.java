@@ -1,14 +1,14 @@
 package ai.group;
 
 import world.events.ISpawnListener;
-import ai.Creature;
 import ai.neurons.DNA;
-import world.Fruit;
+import ent.Creature;
+import ent.Fruit;
 import world.World;
 
 public class EvolutionController implements ISpawnListener<Creature>{
 	long max_life = 0;
-	long score = 1000;
+	double score = Double.MAX_VALUE;
 	DNA superior = null;
 
 	int sum = 0;
@@ -21,19 +21,21 @@ public class EvolutionController implements ISpawnListener<Creature>{
 
 		sum--;
 		
-		if(c.life > max_life || (c.life == max_life && c.score < score)) {
+		if(c.life > max_life) {
 			max_life = c.life;
+			superior = c.getDNA();
+			score = Double.MAX_VALUE;
+			System.out.println("\r" + max_life + " | " + score);
+			
+		}/* else if ((c.life == max_life && c.score < score)) {
 			score = (long) c.score;
 			superior = c.getDNA();
-			System.out.println("\r" + max_life + " | " + score);
-		}
+		}*/
 		
 		if(sum == 0) {
+			
+
 			repopulate(world);
-			max_life = 0;
-
-			score = 0;
-
 		}
 		
 		
@@ -41,7 +43,7 @@ public class EvolutionController implements ISpawnListener<Creature>{
 	}
 	
 	public void repopulate(World world) {
-		for(int i = 0; i < 100 ; i++) {
+		for(int i = 0; i < 4 ; i++) {
 		if(Math.random() < 0.01) {
 			world.addEntity(new Creature());
 

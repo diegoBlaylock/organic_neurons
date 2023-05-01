@@ -1,4 +1,4 @@
-package world;
+package ent;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -7,6 +7,8 @@ import gui.IPaint;
 import logic.Attributes.Attr;
 import logic.ITick;
 import logic.physics.Vecf;
+import world.Entity;
+import world.World;
 import world.scent.IScented;
 import world.scent.Scent;
 
@@ -37,8 +39,8 @@ public class Fruit extends Entity implements ITick, IPaint, IScented{
 	}
 
 	@Override
-	public byte smell() {
-		return 127;
+	public short smell() {
+		return Short.MAX_VALUE;
 	}
 
 	@Override

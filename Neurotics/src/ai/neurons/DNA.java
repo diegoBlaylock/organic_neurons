@@ -7,54 +7,28 @@ import java.util.List;
 import java.util.Random;
 
 import ai.Brain;
-import ai.Creature;
+import ai.neurons.motor.FOutNeuron;
 import ai.neurons.motor.MovementNeuron;
 import ai.neurons.sensory.ASensoryNeuron;
+import ai.neurons.sensory.FInNeuron;
 import ai.neurons.sensory.ScentNeuron;
+import ent.Creature;
 import logic.physics.Vecf;
 import world.scent.Scent;
 
 public class DNA {
 	
-	final static int POOL_SIZE = 256;
-	final static int INP_SIZE = 64; // REMOVE AFTER MVP FOR VARIABLE LENGTH
 	final static Random RNG = new Random();
-
+	final static int NUM_LAYERS = 5;
+	final static int LAYER_SIZE = 8;
+	final static int FEEDBACK_SIZE = 2;
 	
-	short[] connections;
-	N[] pool;
-	N[] motorConnections;
+	T[][] inputTerminals;
+	N[][] layers = new N[NUM_LAYERS][] ;
+	N[] outputNeurons;
 	
 	DNA(){}
 	
-	/* terminals 
-	  		- short strength
-			- connection
-		Neurons
-			- action potential
-			- inital pressure
-			
-		Sensory nerves: simple feed foward. Preplanned or custom?
-			- 16 scent
-			- 4 force
-			- Reinsert 
-		Interneural net:
-			- List N neurons
-				Neuron[i]:
-					- short Potential
-					- short initial
-					- byte length terminal (1-8)
-						Teminal:
-							byte strength (0-127)
-							int connection (Neuron[connection]
-		motor neurons: 
-			- planned 4 at end for force
-			- planned [Var] for reinsert
-			- pick multiple from Interneural net
-		
-		Attributes:
-			- max force
-	*/
 	
 	static class N {
 		public short pot;
@@ -79,13 +53,12 @@ public class DNA {
 	}
 	
 	static class T {
-		public byte str;
-		public short conn;
+		public short str;
 		
 		public void setStrength(byte newStrength) {
 			if(newStrength <= 0) {
-				if(str < 127) str = 1;
-				else str = Byte.MAX_VALUE;
+				if(str < 0) str = Short.MIN_VALUE+1;
+				else str = Short.MAX_VALUE;
 			}
 			
 			str=newStrength;
@@ -96,134 +69,142 @@ public class DNA {
 		
 		DNA dna = new DNA();
 		
-		dna.pool = new N[POOL_SIZE];
+		dna.outputNeurons = new N[4+FEEDBACK_SIZE];
 		
-		for(int i = 0; i < POOL_SIZE; i++) {
-			
-			dna.pool[i] = genN();
+		for(int i = 0 ; i < 4+FEEDBACK_SIZE; i++) {
+			dna.outputNeurons[i] = genN(0);
 		}
 		
-		dna.motorConnections = new N[4];
-		
-		for(int i = 0 ; i < 4; i++) {
-			dna.motorConnections[i] = genN();
-			dna.motorConnections[i].termin = new T[INP_SIZE];
+		for(int i = dna.layers.length - 1; i >= 0; i--) {
+			dna.layers[i] = new N[LAYER_SIZE];
 			
-			for(int j = 0 ; j < dna.motorConnections[i].termin.length; j++) {
-				dna.motorConnections[i].termin[j] = genT();
+			for(int j = 0; j < dna.layers[i].length; j++) {
+				dna.layers[i][j] = genN((i == dna.layers.length -1)? dna.outputNeurons.length : dna.layers[i+1].length);
 			}
 		}
 		
-		dna.connections = new short[4];
+		dna.inputTerminals = new T[4+FEEDBACK_SIZE][];
 		
-		for(int i = 0 ; i < 4; i++) {
-			dna.connections[i] = (short) RNG.nextInt(POOL_SIZE);
-			
+		for(int i = 0 ; i < 4+FEEDBACK_SIZE; i++) {
+			dna.inputTerminals[i] = new T[dna.layers[0].length];
+			for(int j = 0 ; j < dna.layers[0].length; j++) {
+				dna.inputTerminals[i][j] = genT();	
+			}
 		}
 		
 		return dna;
 	}
 	
-	static N genN() {
+	static N genN(int terminals) {
 		N n = new N();
 		n.init = (short) RNG.nextInt(1024);
 		n.pot = (short) RNG.nextInt(1024);
-		n.termin = new T[RNG.nextInt(8)+1];
-		
-		for(int i = 0 ; i < n.termin.length; i++) {
-			n.termin[i] = genT();
+		if(terminals != 0) {
+			n.termin =  new T[terminals];
+			
+			for(int i = 0 ; i < n.termin.length; i++) {
+				n.termin[i] = genT();
+			}
 		}
-		
 		return n;
 	}
 	
 	static T genT() {
 		T t = new T();
-		t.str = (byte) (RNG.nextInt(127));
-		t.conn = (short) RNG.nextInt(POOL_SIZE);
+		t.str = (short) (RNG.nextInt(2*Short.MAX_VALUE+1)-Short.MIN_VALUE);
 		return t;
 	}
 	
 	public Brain build(Creature c) {
 		Prebrain brain = new Prebrain();
+		buildMotors(brain, c);
 		buildPool(brain);
 		buildSenses(brain, c);
-		buildMotors(brain, c);
+		
 		return brain.build();
 		
 	}
 	
 	void buildPool(Prebrain brain) {
-		List<Terminal>[] needsLoading = (List<Terminal>[]) Array.newInstance(List.class, POOL_SIZE);
-		Neuron[] pool = new Neuron[POOL_SIZE];
-		for(int i = 0 ; i < pool.length; i++) {
-			Terminal[] terminals = new Terminal[this.pool[i].termin.length];
+		Neuron[][] layers = new Neuron[NUM_LAYERS][];
+		for(int i = layers.length-1 ; i >= 0; i--) {
 			
+			layers[i] = new Neuron[this.layers[i].length];
 			
-			for(int j = 0; j < terminals.length; j++) {
-				short loc = this.pool[i].termin[j].conn;
-				Neuron connection = (loc < i)? pool[i] : null;
+			for(int j = 0; j < this.layers[i].length; j++) {
+				Terminal[] terminals = new Terminal[this.layers[i][j].termin.length];
 				
-				terminals[j] = new Terminal(connection, this.pool[i].termin[j].str);
-				
-				if(connection == null) {
-					if(needsLoading[loc] == null) {
-						needsLoading[loc] = new ArrayList<Terminal>();
-					}
-					needsLoading[loc].add(terminals[j]);
+				for(int k = 0; k < terminals.length; k++) {
+					
+					Neuron connection = (i == this.layers.length-1)? brain.outputs[k] : layers[i+1][k];
+					
+					terminals[k] = new Terminal(connection, this.layers[i][j].termin[k].str);	
 				}
 				
-				
-			}
-			
-			pool[i] = new Neuron(terminals, this.pool[i].pot);
-			pool[i].pressure =  this.pool[i].init;
-		}
-		
-		for(int i = 0 ; i < needsLoading.length; i++) {
-			List<Terminal> terminals = needsLoading[i];
-			if(terminals!= null) {
-				for(Terminal t : terminals) {
-					t.connection = pool[i];
-				}
+				layers[i][j] = new Neuron(terminals, this.layers[i][j].pot);
+				layers[i][j].pressure =  this.layers[i][j].init;
 			}
 		}
 		
-		brain.pool = pool;
+		brain.layers = layers;
 	}
 	
 	// Custom senses- right now 1 scent for bi pole
 	void buildSenses(Prebrain brain, Creature creature) {
-		ASensoryNeuron[] senses = {
-				new ScentNeuron(creature, brain.pool[connections[0]], Scent.FRUITY, new Vecf(-10,0)), 
-				new ScentNeuron(creature, brain.pool[connections[1]], Scent.FRUITY, new Vecf(10,0)),
-				new ScentNeuron(creature, brain.pool[connections[2]], Scent.FRUITY, new Vecf(0,-10)),
-				new ScentNeuron(creature, brain.pool[connections[3]], Scent.FRUITY, new Vecf(0,10))};
-		brain.senses = senses;
-	}
-	
-	void buildMotors(Prebrain brain, Creature creature) {
-		Vecf[] directions = {new Vecf(-0.5, 0), new Vecf(0.5, 0), new Vecf(0, -0.5), new Vecf(0, 0.5)};
+		Terminal[][] terminals = new Terminal[4+FEEDBACK_SIZE][inputTerminals[0].length];
 		
-		MovementNeuron[] motors = new MovementNeuron[4];
-		
-		for(int i = 0 ; i < motorConnections.length; i++) {
-			motors[i] = new MovementNeuron(creature, directions[i], motorConnections[i].pot, motorConnections[i].init);
-			
-			for(int j = 0 ; j < motorConnections[i].termin.length; j++) {
-				Terminal term = new Terminal(motors[i], motorConnections[i].termin[j].str);
-				brain.pool[motorConnections[i].termin[j].conn].terminals = Arrays.copyOf(brain.pool[motorConnections[i].termin[j].conn].terminals, brain.pool[motorConnections[i].termin[j].conn].terminals.length+1);
-				brain.pool[motorConnections[i].termin[j].conn].terminals[brain.pool[motorConnections[i].termin[j].conn].terminals.length-1] = term;
-			
+		for(int i = 0 ; i < inputTerminals.length; i++) {
+			for(int j = 0 ; j < inputTerminals[i].length; j++) {
+				terminals[i][j] = new Terminal(brain.layers[0][j], inputTerminals[i][j].str);
 			}
 		}
+		
+		ASensoryNeuron[] senses = {
+				new ScentNeuron(creature, terminals[0], Scent.FRUITY, new Vecf(-10,0)), 
+				new ScentNeuron(creature, terminals[1], Scent.FRUITY, new Vecf(10,0)),
+				new ScentNeuron(creature, terminals[2], Scent.FRUITY, new Vecf(0,-10)),
+				new ScentNeuron(creature, terminals[3], Scent.FRUITY, new Vecf(0,10))};
+		
+		FInNeuron[] inputs = new FInNeuron[FEEDBACK_SIZE];
+		
+		for(int i = 0; i < inputs.length; i++) {
+			inputs[i] = new FInNeuron(brain.relays[i], terminals[i+senses.length]);
+		}
+				
+		brain.senses = Arrays.copyOf(senses, senses.length + inputs.length);
+		System.arraycopy(inputs, 0, brain.senses, senses.length, inputs.length);
+	}
 	
+	
+	
+	void buildMotors(Prebrain brain, Creature creature) {
+		final float strength = 0.01f;
+		Vecf[] directions = {new Vecf(-strength, 0), new Vecf(strength, 0), new Vecf(0, -strength), new Vecf(0, strength)};
+	
+		Neuron[] motors = new MovementNeuron[4];
+		
+		for(int i = 0 ; i < motors.length; i++) {
+			motors[i] = new MovementNeuron(creature, directions[i], outputNeurons[i].pot, outputNeurons[i].init);
+		}
+		
+		brain.relays = new Relay[FEEDBACK_SIZE];
+		Neuron[] feedbacks = new FOutNeuron[FEEDBACK_SIZE];
+		
+		for(int i = 0 ; i < feedbacks.length; i++) {
+			brain.relays[i] = new Relay((short) 0);
+			feedbacks[i] = new FOutNeuron(brain.relays[i], outputNeurons[i+motors.length].pot, outputNeurons[i+motors.length].init);
+		}
+		brain.outputs = new Neuron[motors.length + feedbacks.length];
+		System.arraycopy( motors, 0, brain.outputs, 0, motors.length);
+		System.arraycopy( feedbacks, 0, brain.outputs, motors.length, feedbacks.length);
 	}
 	
 	
 	private class Prebrain{
-		Neuron[] pool;
+		Neuron[] outputs;
+		Neuron[][] layers;
 		ASensoryNeuron[] senses;
+		Relay[] relays;
 		
 		public Brain build() {
 			return new Brain(senses);
@@ -231,49 +212,40 @@ public class DNA {
 	}
 	
 	public DNA mutate() {
-		final short pot_change = prob(0.1f);
-		final short str_change = prob(0.1f);
-		final short change_factor = 20;
+		final short pot_change = prob(0.05f);
+		final short str_change = prob(0.05f);
+		final short change_factor = 10;
 		
 		
 		DNA dna = new DNA();
-		dna.connections = this.connections;
-		dna.motorConnections = this.motorConnections;
-		dna.pool = this.pool;
-		//SENSORS
+		dna.inputTerminals = this.inputTerminals;
+		dna.outputNeurons = this.outputNeurons;
+		dna.layers = this.layers;
 		
 		
 		// POOL
-		for(N n : dna.pool) {
-			if(roll(pot_change)) {
-				n.setPotential((short) (n.pot + change_factor * (Math.random()*2 -1)));
-			}
-			
-			if(roll(pot_change)) {
-				n.setInit((short) (n.pot + change_factor * (Math.random()*2 -1)));
-			}
-			
-			for(T t : n.termin) {
-				if(roll(str_change)) {
-					t.setStrength((byte) (t.str+ change_factor * (Math.random()*2 -1)));
+		for(N[] layer : dna.layers) {
+			for(N n : layer) {
+				if(roll(pot_change)) {
+					n.setPotential((short) (n.pot + change_factor * (Math.random()*2 -1)));
 				}
 				
-				if(roll(str_change)) {
-					t.conn = (short) ((t.conn+1) % POOL_SIZE);
+				if(roll(pot_change)) {
+					n.setInit((short) (n.pot + change_factor * (Math.random()*2 -1)));
+				}
+				
+				for(T t : n.termin) {
+					if(roll(str_change)) {
+						t.setStrength((byte) (t.str+ change_factor * (Math.random()*2 -1)));
+					}
 				}
 			}
 		}
 		
 		//MOTORS
-		for(N n : dna.motorConnections) {
+		for(N n : dna.outputNeurons) {
 			if(roll(pot_change)) {
 				n.setPotential((short) (n.pot + change_factor * (Math.random()*2 -1)));
-			}
-			
-			for(T t : n.termin) {
-				if(roll(str_change)) {
-					t.setStrength((byte) (t.str+ change_factor * (Math.random()*2 -1)));
-				}
 			}
 		}
 		

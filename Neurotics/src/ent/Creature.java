@@ -1,8 +1,9 @@
-package ai;
+package ent;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 
+import ai.Brain;
 import ai.neurons.DNA;
 import ai.neurons.IThink;
 import gui.IPaint;
@@ -12,7 +13,7 @@ import logic.physics.ICollide;
 import logic.physics.Physical;
 import logic.physics.Vecf;
 import world.Entity;
-import world.Fruit;
+import world.World;
 
 public class Creature extends Entity implements IPaint, ITick, IThink, ICollide {
 
@@ -26,7 +27,7 @@ public class Creature extends Entity implements IPaint, ITick, IThink, ICollide 
 	
 	short hunger = 400;
 	public long life = 0;
-	public double score = 1000;
+	public double score = Double.MAX_VALUE;
 	
 	public Creature() {
 		this(DNA.genRandom());
@@ -46,6 +47,8 @@ public class Creature extends Entity implements IPaint, ITick, IThink, ICollide 
 		brain.tick();
 		hunger--;
 		life++;
+		
+		
 	}
 	
 	public void think() {
@@ -55,13 +58,7 @@ public class Creature extends Entity implements IPaint, ITick, IThink, ICollide 
 		
 		if(hunger == Byte.MIN_VALUE) {
 			this.getWorld().remEntity(this); 
-			this.getWorld().getEntities().forEach((Entity e) -> {
-				if(e instanceof Fruit) {
-					double x = e.getPosition().getX() - this.getPosition().getX();
-					double y = e.getPosition().getY() - this.getPosition().getY();
-					score = x*x+y*y;
-				}
-			});
+			
 		}
 	}
 	
@@ -92,5 +89,15 @@ public class Creature extends Entity implements IPaint, ITick, IThink, ICollide 
 
 	public final DNA getDNA() {
 		return dna;
+	}
+	
+	public void onDispawn(World w) {
+		w.getEntities().forEach((Entity e) -> {
+			if(e instanceof Fruit) {
+				double x = e.getPosition().getX() - this.getPosition().getX();
+				double y = e.getPosition().getY() - this.getPosition().getY();
+				score = Math.min(score, x*x+y*y);
+			}
+		});
 	}
 }

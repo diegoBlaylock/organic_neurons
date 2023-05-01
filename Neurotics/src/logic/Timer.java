@@ -1,7 +1,7 @@
 package logic;
 
 public class Timer {
-	long speed = 1;
+	long speed = 20;
 	volatile boolean isRunning = false;
 
 	final Runnable tick;
