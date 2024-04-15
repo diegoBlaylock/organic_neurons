@@ -19,9 +19,9 @@ import edu.blaylock.neurons.logic.Attributes.Attr;
 import edu.blaylock.neurons.logic.physics.Physical;
 import edu.blaylock.neurons.logic.physics.PhysicsEngine;
 import edu.blaylock.neurons.logic.physics.Vecf;
-import world.events.ISpawnListener;
-import world.scent.IScented;
-import world.scent.Scent;
+import edu.blaylock.neurons.world.events.ISpawnListener;
+import edu.blaylock.neurons.world.scent.IScented;
+import edu.blaylock.neurons.world.scent.Scent;
 
 public class World {
 	

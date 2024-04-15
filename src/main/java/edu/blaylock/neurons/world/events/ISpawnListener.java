@@ -1,4 +1,4 @@
-package world.events;
+package edu.blaylock.neurons.world.events;
 
 import java.util.ArrayList;
 import java.util.Arrays;

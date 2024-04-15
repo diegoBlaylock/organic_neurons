@@ -1,4 +1,4 @@
-package world.scent;
+package edu.blaylock.neurons.world.scent;
 
 public enum Scent {
 	FRUITY(0),

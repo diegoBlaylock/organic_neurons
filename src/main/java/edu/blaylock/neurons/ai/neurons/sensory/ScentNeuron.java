@@ -3,7 +3,7 @@ package edu.blaylock.neurons.ai.neurons.sensory;
 import edu.blaylock.neurons.ai.Creature;
 import edu.blaylock.neurons.ai.neurons.Neuron;
 import edu.blaylock.neurons.logic.physics.Vecf;
-import world.scent.Scent;
+import edu.blaylock.neurons.world.scent.Scent;
 
 public class ScentNeuron extends ASensoryNeuron {
 	private Scent scent;

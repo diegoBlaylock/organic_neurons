@@ -3,7 +3,7 @@ package edu.blaylock.neurons.logic;
 import edu.blaylock.neurons.ai.neurons.IThink;
 import edu.blaylock.neurons.gui.IPaint;
 import edu.blaylock.neurons.logic.physics.ICollide;
-import world.scent.IScented;
+import edu.blaylock.neurons.world.scent.IScented;
 
 public class Attributes {
 	public static enum Attr {

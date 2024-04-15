@@ -12,7 +12,7 @@ import edu.blaylock.neurons.gui.Window;
 import edu.blaylock.neurons.logic.Timer;
 import edu.blaylock.neurons.world.Fruit;
 import edu.blaylock.neurons.world.World;
-import world.events.ISpawnListener;
+import edu.blaylock.neurons.world.events.ISpawnListener;
 
 public class Main {
 	

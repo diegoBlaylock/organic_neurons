@@ -1,10 +1,10 @@
 package edu.blaylock.neurons.ai.group;
 
-import world.events.ISpawnListener;
 import edu.blaylock.neurons.ai.Creature;
 import edu.blaylock.neurons.ai.neurons.DNA;
 import edu.blaylock.neurons.world.Fruit;
 import edu.blaylock.neurons.world.World;
+import edu.blaylock.neurons.world.events.ISpawnListener;
 
 public class EvolutionController implements ISpawnListener<Creature>{
 	long max_life = 0;

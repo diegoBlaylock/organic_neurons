@@ -7,8 +7,8 @@ import edu.blaylock.neurons.gui.IPaint;
 import edu.blaylock.neurons.logic.ITick;
 import edu.blaylock.neurons.logic.Attributes.Attr;
 import edu.blaylock.neurons.logic.physics.Vecf;
-import world.scent.IScented;
-import world.scent.Scent;
+import edu.blaylock.neurons.world.scent.IScented;
+import edu.blaylock.neurons.world.scent.Scent;
 
 public class Fruit extends Entity implements IPaint, IScented{
 	

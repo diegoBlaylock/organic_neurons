@@ -1,4 +1,4 @@
-package world.scent;
+package edu.blaylock.neurons.world.scent;
 
 import edu.blaylock.neurons.logic.physics.Vecf;
 

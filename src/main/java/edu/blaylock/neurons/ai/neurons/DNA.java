@@ -12,7 +12,7 @@ import edu.blaylock.neurons.ai.neurons.motor.MovementNeuron;
 import edu.blaylock.neurons.ai.neurons.sensory.ASensoryNeuron;
 import edu.blaylock.neurons.ai.neurons.sensory.ScentNeuron;
 import edu.blaylock.neurons.logic.physics.Vecf;
-import world.scent.Scent;
+import edu.blaylock.neurons.world.scent.Scent;
 
 public class DNA {
 	
