@@ -8,7 +8,7 @@ import edu.blaylock.neurons.logic.physics.Vecf;
 
 public class MovementNeuron extends Neuron {
 	static final Terminal[] null_terminals = new Terminal[]{};
-	static final float MAX = 100;
+	static final float MAX = 100f;
 	
 	
 	ForceHandle control;
