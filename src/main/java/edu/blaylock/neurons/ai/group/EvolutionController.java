@@ -42,17 +42,12 @@ public class EvolutionController implements ISpawnListener<Creature>{
 	
 	public void repopulate(World world) {
 		for(int i = 0; i < 100 ; i++) {
-		if(Math.random() < 0.01) {
-			world.addEntity(new Creature());
-
-		} else {
-			if(superior != null) {
-				world.addEntity(new Creature(superior.mutate()));
-			} else {
+			if(superior == null || Math.random() < 0.01) {
 				world.addEntity(new Creature());
-
+	
+			} else {
+				world.addEntity(new Creature(superior.mutate()));
 			}
-		}
 		}
 	}
 }

@@ -6,11 +6,16 @@ import java.awt.Graphics2D;
 import javax.swing.JComponent;
 
 import edu.blaylock.neurons.ai.Creature;
+import edu.blaylock.neurons.logic.Attributes.Attr;
 import edu.blaylock.neurons.world.Entity;
 import edu.blaylock.neurons.world.World;
 
 public class ViewPort extends JComponent {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3656254005649373862L;
 	World world;
 	
 	public ViewPort(World world) {
@@ -24,8 +29,7 @@ public class ViewPort extends JComponent {
 	
 	void render(Graphics2D g) {
 		synchronized(world.getLock()) {
-			world.getEntities().stream()
-			.filter(IPaint.class::isInstance)
+			world.getEntitiesByAttribute(Attr.PAINTABLE).stream()
 			.map(Entity::<IPaint>convert)
 			.forEach((IPaint e) -> paintIndividual(e, g));
 		}	

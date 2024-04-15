@@ -4,8 +4,14 @@ import java.lang.reflect.Array;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import edu.blaylock.neurons.ai.neurons.IThink;
 import edu.blaylock.neurons.logic.ITick;
@@ -26,6 +32,8 @@ public class World {
 	Collection<Entity> creatures = new ArrayList<Entity>();
 	Queue<Entity> enteringCreatures = new ArrayDeque<Entity>();
 	Queue<Entity> exitingCreatures = new ArrayDeque<Entity>();
+	
+	private final Map<Attr, Set<Integer>> attributeMap = new HashMap<Attr, Set<Integer>>();
 	
 	Collection<IScented>[] scentSources = (Collection<IScented>[]) Array.newInstance(Collection.class, Scent.values().length);
 		
@@ -77,19 +85,25 @@ public class World {
 		synchronized (UNITLOCK) {
 			synchronized (INSERTLOCK) {
 				while(!enteringCreatures.isEmpty()) {
-					enteringCreatures.peek().world = this;
-					if(Entity.hasAttr(enteringCreatures.peek(), Attr.SCENTED)) {
-						IScented candle = Entity.<IScented>convert(enteringCreatures.peek());
-						scentSources[candle.getScent().ordinal()].add(candle);
+					Entity e = enteringCreatures.poll();
+					e.world = this;
+					
+					for(Attr attr : e.getAttributes()) {
+						attributeMap.computeIfAbsent(attr, (nil)->new HashSet<Integer>()).add(e.getId());
+					
+						if(attr ==  Attr.SCENTED) {
+							IScented candle = Entity.<IScented>convert(e);
+							scentSources[candle.getScent().ordinal()].add(candle);
+						}
 					}
 					
 					synchronized(Physical.cache) {
-						Physical.cache.add(enteringCreatures.peek());
+						Physical.cache.add(e);
 					}
 
-					creatures.add(enteringCreatures.peek());
-					enteringCreatures.peek().onSpawn(this);
-					ISpawnListener.postSpawnEvent(this, enteringCreatures.poll());
+					creatures.add(e);
+					e.onSpawn(this);
+					ISpawnListener.postSpawnEvent(this, e);
 				}
 			}
 		}
@@ -97,38 +111,38 @@ public class World {
 		synchronized (UNITLOCK) {	
 			synchronized (REMOVELOCK) {
 				while(!exitingCreatures.isEmpty()) {
-					exitingCreatures.peek().world = null;
+					Entity e = exitingCreatures.poll();
+					e.world = null;
 					
-					if(Entity.hasAttr(exitingCreatures.peek(), Attr.SCENTED)) {
-						IScented candle = Entity.<IScented>convert(exitingCreatures.peek());
-						scentSources[candle.getScent().ordinal()].remove(candle);
+					for(Attr attr : e.getAttributes()) {
+						attributeMap.computeIfAbsent(attr, (nil)->new HashSet<Integer>()).remove(e.getId());
+					
+						if(attr ==  Attr.SCENTED) {
+							IScented candle = Entity.<IScented>convert(e);
+							scentSources[candle.getScent().ordinal()].remove(candle);
+						}
 					}
 					
 					synchronized(Physical.cache) {
-						Physical.cache.remove(exitingCreatures.peek());
+						Physical.cache.remove(e);
 					}
 
-					creatures.remove(exitingCreatures.peek());
-					exitingCreatures.peek().onDispawn(this);
-					ISpawnListener.postDespawnEvent(this, exitingCreatures.poll());
+					creatures.remove(e);
+					e.onDispawn(this);
+					ISpawnListener.postDespawnEvent(this, e);
 
 				}				
 			}
 		}
 		
 		synchronized(UNITLOCK) {
-			creatures.stream().filter((Entity e) -> Entity.hasAttr(e, Attr.TICKABLE))
+			getEntitiesByAttribute(Attr.TICKABLE).stream()
 			.map(Entity::<ITick>convert)
 			.forEach(ITick::tick);
 		}
 		
 		synchronized(UNITLOCK) {
-//			for(Entity e : creatures) {
-//				if(Entity.hasAttr(e, Attr.THINKABLE)) {
-//					Entity.<IThink>convert(e).think();
-//				}
-//			}
-			creatures.stream().filter((Entity e) -> Entity.hasAttr(e, Attr.THINKABLE))
+			getEntitiesByAttribute(Attr.THINKABLE).stream()
 			.map(Entity::<IThink>convert)
 			.forEach((IThink e) -> {
 				e.think();
@@ -142,6 +156,14 @@ public class World {
 
 	public String getLock() {
 		return UNITLOCK;
+	}
+	
+	public Collection<Entity> getEntitiesByAttribute(Attr attr) {
+		Set<Integer> set = attributeMap.get(attr);
+		if(set.size() == 0) return Collections.emptyList();
+		
+		return set.stream().map(Entity::getEntity).collect(Collectors.toUnmodifiableList());
+		
 	}
 	
 }

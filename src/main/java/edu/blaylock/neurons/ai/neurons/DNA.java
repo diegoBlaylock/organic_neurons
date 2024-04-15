@@ -231,8 +231,8 @@ public class DNA {
 	}
 	
 	public DNA mutate() {
-		final short pot_change = prob(0.1f);
-		final short str_change = prob(0.1f);
+		final float pot_change = 0.1f;
+		final float str_change = 0.1f;
 		final short change_factor = 20;
 		
 		
@@ -280,12 +280,8 @@ public class DNA {
 		return dna;
 	}
 	
-	private short prob(float p) {
-		return (short) ((Short.MAX_VALUE - Short.MIN_VALUE)*p+Short.MIN_VALUE);
-	}
-	
-	private boolean roll(short amount) {
-		return (short)RNG.nextInt() <= amount;
+	private boolean roll(float amount) {
+		return (float) RNG.nextFloat() <= amount;
 	}
 	
 	public DNA combine(DNA other) {

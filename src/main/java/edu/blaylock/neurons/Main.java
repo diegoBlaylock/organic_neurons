@@ -1,4 +1,5 @@
 package edu.blaylock.neurons;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -51,12 +52,10 @@ public class Main {
 	static void setupGUI() {
 		window = new Window(500,500);
 		window.add(new ViewPort(world));
-		window.addKeyListener(new KeyListener() {
+		window.addKeyListener(new KeyAdapter() {
 
 			@Override
 			public void keyTyped(KeyEvent e) {
-				
-
 				if(e.getKeyChar() == 's') {
 					timer.setSpeed(Math.max(0,timer.getSpeed()-1));
 				}
@@ -66,23 +65,11 @@ public class Main {
 
 				}
 			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				
-			}
-			
 		});
 	}
 	
 	static void start() {
 		timer.start();
-		
 		window.setVisible(true);
 	}
 	
@@ -90,7 +77,4 @@ public class Main {
 		world.tick();
 		SwingUtilities.invokeLater(window::repaint);
 	}
-	
-	
-
 }
